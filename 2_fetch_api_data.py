@@ -78,7 +78,7 @@ class NiftyDataPipeline:
         EquityConstituent("BAJFINANCE.NS", "Bajaj Finance Ltd", "Financial Services", 61.8, 145.2),
         EquityConstituent("HCLTECH.NS", "HCL Technologies Ltd", "Information Technology", 271.4, 40.5),
         EquityConstituent("MARUTI.NS", "Maruti Suzuki India Ltd", "Automobiles & Components", 31.4, 275.4),
-        EquityConstituent("SUNPHARMA.NS", "Sun Pharmaceutical Industries Ltd", "Healthcare & Pharmaceuticals", 239.9, 31.5),
+        EquityConstituent("SUNPHARMA.NS", "Sun Pharma Industries Ltd", "Healthcare", 239.9, 31.5),
         EquityConstituent("ADANIENT.NS", "Adani Enterprises Ltd", "Metals & Mining", 114.0, 21.4),
         EquityConstituent("KOTAKBANK.NS", "Kotak Mahindra Bank Ltd", "Financial Services", 198.8, 42.8),
         EquityConstituent("TITAN.NS", "Titan Company Ltd", "Consumer Durables", 88.8, 29.6),
@@ -135,7 +135,7 @@ class NiftyDataPipeline:
         EquityConstituent("JSWENERGY.NS", "JSW Energy Ltd", "Power & Utilities", 164.5, 7.8),
         EquityConstituent("JSWSTEEL.NS", "JSW Steel Ltd", "Metals & Mining", 244.5, 24.5),
         EquityConstituent("TATAPOWER.NS", "Tata Power Company Ltd", "Power & Utilities", 319.5, 11.2),
-        EquityConstituent("MOTHERSON.NS", "Samvardhana Motherson International", "Automobiles & Components", 676.6, 3.2),
+        EquityConstituent("MOTHERSON.NS", "Samvardhana Motherson Int", "Automobiles", 676.6, 3.2),
         EquityConstituent("BOSCHLTD.NS", "Bosch Ltd", "Automobiles & Components", 2.95, 480.0),
         EquityConstituent("GODREJCP.NS", "Godrej Consumer Products Ltd", "Fast Moving Consumer Goods", 102.3, 14.8),
         EquityConstituent("TORNTPOWER.NS", "Torrent Power Ltd", "Power & Utilities", 48.1, 32.4),
@@ -190,7 +190,10 @@ class NiftyDataPipeline:
         session.mount("https://", adapter)
         session.mount("http://", adapter)
         session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            ),
             "Accept": "application/json",
         })
         return session
