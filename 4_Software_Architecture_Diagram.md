@@ -1,221 +1,295 @@
-# Software Development & System Architecture Specification
+# Enterprise FinTech Architecture & Distributed Systems Specification
 
-**Document Ref:** `4_Software_Architecture_Diagram.md`  
-**Target Architecture:** End-to-End Enterprise FinTech & Analytics Stack  
-**System Flow:** User Action $\rightarrow$ REST API Request $\rightarrow$ Backend Server $\rightarrow$ Database Transaction $\rightarrow$ ETL/Data Pipeline $\rightarrow$ Analytics Dashboard  
+**Document Reference:** `4_Software_Architecture_Diagram.md`  
+**System Classification:** High-Throughput Event-Driven Trading & Analytics Architecture  
+**Architectural Framework:** C4 Model (Context, Containers, Components, Dynamic Sequences)  
 
 ---
 
-## 1. System Architecture Diagram
+## 1. C4 Architecture Level 1: System Context Diagram
 
-The high-level architecture separates low-latency transactional execution (**OLTP**) from high-throughput analytical workloads (**OLAP**) using event-driven decoupling and automated data pipelines:
+The System Context diagram establishes the boundaries of the Bluestock FinTech Platform, illustrating interactions with retail traders, institutional analysts, external clearinghouses, national stock exchanges, and banking payment rails:
 
 ```mermaid
-graph TD
-    subgraph Client_Layer ["1. Client & Presentation Layer"]
-        A["Web App (React / Next.js)"]
-        B["Mobile App (iOS / Android)"]
+graph TB
+    subgraph Users ["Actors & External Stakeholders"]
+        TRADER["Retail Trader / Investor<br/>[Web & Mobile]"]
+        ANALYST["Quantitative Data Analyst<br/>[BI & Analytics Workbench]"]
+        COMPLIANCE["Compliance & Risk Officer<br/>[Audit Portal]"]
     end
 
-    subgraph Gateway_Layer ["2. API Gateway & Security"]
-        GW["API Gateway & Reverse Proxy (NGINX / Envoy)"]
-        AUTH["Auth Service (OAuth 2.0 / JWT Validator)"]
-        WAF["WAF & Rate Limiter (Cloudflare)"]
+    subgraph Platform ["Bluestock Enterprise FinTech Platform"]
+        CORE_PLATFORM["Bluestock Core Platform<br/>[Trading, Order Matching, Account Ledger, Real-time Risk, Lakehouse & Telemetry]"]
     end
 
-    subgraph Backend_Layer ["3. Application Backend (Microservices)"]
-        API1["Market Data Service (Go / Node.js)"]
-        API2["Order & Trade Execution Service (Java / Spring)"]
-        API3["User & Portfolio Service (Python / FastAPI)"]
+    subgraph External_Exchanges ["National Trading Venues & Clearing"]
+        NSE["National Stock Exchange (NSE)<br/>[NEAT Matching Engine / Clearing]"]
+        BSE["Bombay Stock Exchange (BSE)<br/>[BOLT+ Engine / ICCL]"]
+        DEPOSITORIES["Central Depositories<br/>[NSDL & CDSL]"]
     end
 
-    subgraph OLTP_Storage ["4. Transactional Storage (OLTP)"]
-        DB_PRIMARY[("Primary Database (PostgreSQL / Aurora)")]
-        DB_REPLICA[("Read Replicas (PostgreSQL)")]
-        CACHE[("In-Memory Cache (Redis Cluster)")]
+    subgraph Financial_Rails ["External Banking & Identity Rails"]
+        PAYMENT_GATEWAY["Payment Rails (UPI / NetBanking)<br/>[NPCI & Clearing Banks]"]
+        IDP["Identity Provider / KYC<br/>[DigiLocker / Aadhaar e-Sign / CKYC]"]
     end
 
-    subgraph Message_Broker ["5. Event Streaming & Ingestion"]
-        CDC["Change Data Capture (Debezium)"]
-        KAFKA{{"Distributed Event Log (Apache Kafka)"}}
-    end
+    %% Interactions
+    TRADER -->|Places equity orders, monitors live portfolio via HTTPS/WSS| CORE_PLATFORM
+    ANALYST -->|Executes ad-hoc SQL, monitors AUM & sector exposure| CORE_PLATFORM
+    COMPLIANCE -->|Audits transaction logs & SEBI peak margin reports| CORE_PLATFORM
 
-    subgraph ETL_OLAP_Layer ["6. Modern Data Stack & Lakehouse"]
-        ORCH["Orchestrator (Apache Airflow / Dagster)"]
-        TRANS["Transformation Engine (dbt / Apache Spark)"]
-        DW[("Enterprise Data Warehouse (Snowflake / BigQuery)")]
-    end
-
-    subgraph Analytics_BI ["7. Analytics & Consumption Layer"]
-        BI["Executive BI Dashboard (Apache Superset / Tableau)"]
-        ANALYST["Data Analyst Workbench (Jupyter / Python)"]
-        FEATURE["Real-Time Feature Store (Feast)"]
-    end
-
-    %% Flow connections
-    A -->|HTTPS / WSS| WAF
-    B -->|HTTPS / WSS| WAF
-    WAF --> GW
-    GW <--> AUTH
-    GW --> API1
-    GW --> API2
-    GW --> API3
-
-    API1 <--> CACHE
-    API2 --> DB_PRIMARY
-    API3 --> DB_PRIMARY
-    DB_PRIMARY -.->|Replication| DB_REPLICA
-    API3 <--> DB_REPLICA
-
-    DB_PRIMARY -->|WAL Logs| CDC
-    CDC --> KAFKA
-    API2 -.->|Event Pub| KAFKA
-
-    KAFKA --> TRANS
-    ORCH --> TRANS
-    TRANS --> DW
-
-    DW --> BI
-    DW --> ANALYST
-    DW --> FEATURE
+    CORE_PLATFORM -->|Routes binary FIX/FAST orders, receives trade drops| NSE
+    CORE_PLATFORM -->|Routes orders & receives execution confirmations| BSE
+    CORE_PLATFORM -->|Executes e-DIS depository settlements & margin pledges| DEPOSITORIES
+    CORE_PLATFORM -->|Initiates payment debits & instant fund payouts| PAYMENT_GATEWAY
+    CORE_PLATFORM -->|Verifies client identity under PMLA regulations| IDP
 ```
 
 ---
 
-## 2. End-to-End User Interaction Sequence Diagram
+## 2. C4 Architecture Level 2: Container Diagram
 
-The sequence diagram details a complete user request lifecycle: placing a stock purchase order, executing transactional persistence, streaming change events through CDC, batching via ETL/dbt, and publishing updated portfolio risk metrics to the analyst dashboard:
+The Container diagram decomposes the Bluestock Platform into discrete runtime execution environments, data stores, streaming message buses, and transformation microservices:
+
+```mermaid
+graph TB
+    subgraph Client_Applications ["Client Presentation Containers"]
+        SPA["Single Page App (SPA)<br/>[React / TypeScript / Next.js]"]
+        MOBILE["Mobile App<br/>[React Native / Flutter]"]
+    end
+
+    subgraph Edge_Infrastructure ["Edge & Ingress Routing"]
+        CDN["Cloudflare Edge CDN<br/>[Static Assets & WAF Protection]"]
+        LB["High-Availability Load Balancer<br/>[AWS ALB / Envoy Proxy]"]
+        GW["API Gateway & Reverse Proxy<br/>[Kong / NGINX / Rate Limiter]"]
+    end
+
+    subgraph Identity_Container ["Identity & Security"]
+        AUTH_SVC["Auth & Identity Service<br/>[OAuth 2.0 / OIDC / RS256 JWT]"]
+    end
+
+    subgraph Application_Microservices ["Backend Microservice Containers"]
+        MKT_SVC["Market Data Ticker Service<br/>[Go / Gorilla WebSocket]"]
+        ORD_SVC["Order & Trade Execution Service<br/>[Java 21 / Spring Boot 3]"]
+        RMS_SVC["Real-Time Risk Management (RMS)<br/>[Rust / Actix-web]"]
+        USER_SVC["User & Portfolio Account Service<br/>[Python / FastAPI / Pydantic]"]
+    end
+
+    subgraph Operational_Data_Stores ["Transactional Storage (OLTP)"]
+        REDIS[("Redis In-Memory Cluster<br/>[Market Depth, L2 Cache, Rate Limits]")]
+        POSTGRES_MASTER[("PostgreSQL 16 Primary<br/>[ACID Orders, Trades, User Ledgers]")]
+        POSTGRES_SLAVE[("PostgreSQL 16 Read Replicas<br/>[High-Throughput Read Scaling]")]
+    end
+
+    subgraph Event_Streaming_Decoupling ["Event Streaming & CDC"]
+        DEBEZIUM["Debezium CDC Connector<br/>[WAL Log Scraper]"]
+        KAFKA{{"Apache Kafka Event Bus<br/>[Topics: orders, trades, telemetry, ledger]"}}
+    end
+
+    subgraph Analytics_Lakehouse ["Analytical Lakehouse (OLAP)"]
+        AIRFLOW["Apache Airflow / Dagster<br/>[Pipeline Orchestrator]"]
+        DBT["dbt Core Transformation Engine<br/>[Medallion: Bronze -> Silver -> Gold]"]
+        LAKEHOUSE[("Enterprise Data Warehouse<br/>[Snowflake / BigQuery / DuckDB]")]
+    end
+
+    subgraph Analytics_BI_Containers ["Analytics & Consumption"]
+        SUPERSET["Apache Superset / Tableau<br/>[Executive BI & Operational Dashboards]"]
+        JUPYTER["Data Analyst Workbench<br/>[Python / Pandas / Jupyter Hub]"]
+    end
+
+    %% Network links
+    SPA -->|HTTPS / WSS| CDN
+    MOBILE -->|HTTPS / WSS| CDN
+    CDN --> LB
+    LB --> GW
+    GW <--> AUTH_SVC
+    GW --> MKT_SVC
+    GW --> ORD_SVC
+    GW --> RMS_SVC
+    GW --> USER_SVC
+
+    MKT_SVC <--> REDIS
+    ORD_SVC <--> RMS_SVC
+    ORD_SVC --> POSTGRES_MASTER
+    USER_SVC --> POSTGRES_MASTER
+    POSTGRES_MASTER -.->|Physical Streaming Replication| POSTGRES_SLAVE
+    USER_SVC <--> POSTGRES_SLAVE
+
+    POSTGRES_MASTER -->|Write-Ahead Log (WAL)| DEBEZIUM
+    DEBEZIUM -->|Stream JSON Events| KAFKA
+    ORD_SVC -.->|Domain Event Pub| KAFKA
+
+    KAFKA --> DBT
+    AIRFLOW --> DBT
+    DBT --> LAKEHOUSE
+
+    LAKEHOUSE --> SUPERSET
+    LAKEHOUSE --> JUPYTER
+```
+
+---
+
+## 3. C4 Architecture Level 3: Component Diagram (Order & Execution Service)
+
+The Component diagram details the internal software architecture of the mission-critical **Order & Trade Execution Service**:
+
+```mermaid
+graph TD
+    subgraph Order_Execution_Service ["Order & Trade Execution Service (Spring Boot)"]
+        CONTROLLER["Order API REST & WSS Controller<br/>[Endpoint Router & Request Parser]"]
+        VALIDATOR["Input & Schema Validator<br/>[Hibernate Validator / JSR-380]"]
+        IDEMPOTENCY["Idempotency Filter<br/>[Redis Distributed Token Check]"]
+        CIRCUIT_BREAKER["Resilience4j Circuit Breaker<br/>[Fallback & Fault Isolation]"]
+        
+        RMS_CLIENT["RMS Pre-Trade Client<br/>[gRPC / Protobuf to Risk Engine]"]
+        TX_MANAGER["Transaction & Ledger Manager<br/>[Spring Declarative @Transactional]"]
+        EVENT_PRODUCER["Kafka Trade Event Producer<br/>[Idempotent Producer / acks=all]"]
+    end
+
+    subgraph External_Dependencies ["External Service & Storage Dependencies"]
+        REDIS_CACHE[("Redis Cache")]
+        POSTGRES_DB[("PostgreSQL DB")]
+        RISK_SERVICE["Risk Engine (RMS)"]
+        KAFKA_BROKER{{"Apache Kafka"}}
+    end
+
+    CONTROLLER --> VALIDATOR
+    VALIDATOR --> IDEMPOTENCY
+    IDEMPOTENCY <--> REDIS_CACHE
+    IDEMPOTENCY --> CIRCUIT_BREAKER
+    CIRCUIT_BREAKER --> RMS_CLIENT
+    RMS_CLIENT <--> RISK_SERVICE
+    CIRCUIT_BREAKER --> TX_MANAGER
+    TX_MANAGER --> POSTGRES_DB
+    TX_MANAGER --> EVENT_PRODUCER
+    EVENT_PRODUCER --> KAFKA_BROKER
+```
+
+---
+
+## 4. End-to-End Dynamic Interaction Sequence Diagram
+
+The following sequence diagram details an end-to-end stock order transaction, showing microsecond/millisecond latency bounds, database row locking, event-driven CDC decoupling, dbt batch transformation, and analytical dashboard visualization:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as User / Investor
-    participant Client as Client Frontend (React SPA)
-    participant Gateway as API Gateway & WAF
-    participant Auth as Auth0 / Cognito (IdP)
-    participant Backend as Backend Server (Order Service)
-    participant DB as OLTP DB (PostgreSQL)
-    participant Kafka as Message Bus (Apache Kafka)
-    participant Pipeline as ETL Engine (Airflow + dbt)
-    participant DW as Data Warehouse (Snowflake / BigQuery)
-    participant Dashboard as Analytics Dashboard (Superset / Metabase)
+    actor Trader as Retail Trader (Web Client)
+    participant WAF as WAF / Cloudflare CDN
+    participant Gateway as API Gateway (Kong / NGINX)
+    participant Auth as Identity Provider (Auth0 / OIDC)
+    participant OrderSvc as Order Service (Java / Spring)
+    participant RiskSvc as Pre-Trade RMS (Rust / gRPC)
+    participant Database as OLTP DB (PostgreSQL 16)
+    participant Kafka as Event Bus (Apache Kafka)
+    participant ETL as Orchestrator & dbt (Airflow)
+    participant DW as Lakehouse (Snowflake / BigQuery)
+    participant BI as Analytics Dashboard (Apache Superset)
     actor Analyst as Data Analyst / Portfolio Manager
 
-    %% Phase 1: User Action & API Transmission
-    User->>Client: 1. Clicks "Buy 100 Shares of RELIANCE @ Market"
-    Client->>Client: 2. Form validation & idempotency key generation
-    Client->>Gateway: 3. POST /api/v1/orders (Bearer JWT + Payload)
-    
-    %% Phase 2: Gateway Authentication & Routing
-    Gateway->>Auth: 4. Validate JWT Token Signature & Claims
-    Auth-->>Gateway: 5. Token verified (Scope: trade:write, UserID: 8492)
-    Gateway->>Backend: 6. Forward validated request with X-Correlation-ID
+    %% 1. Ingress & Security
+    Trader->>WAF: 1. POST /api/v1/orders (Payload + Idempotency-Key: uuid)
+    Note over Trader,WAF: Latency: ~15-30ms (Edge Network Transit)
+    WAF->>Gateway: 2. Inspect DDoS, rate-limit, and forward request
+    Gateway->>Auth: 3. Verify RS256 JWT Token & Claims (Scope: trade:write)
+    Auth-->>Gateway: 4. Token valid (UserId: 8492, KYC: Level 3)
+    Gateway->>OrderSvc: 5. Route request with X-Correlation-ID header
 
-    %% Phase 3: Business Logic & Transactional Persistence
-    Note over Backend,DB: ACID Transaction Scope
-    Backend->>DB: 7. BEGIN TRANSACTION
-    Backend->>DB: 8. Verify cash balance & lock ledger row (FOR UPDATE)
-    Backend->>DB: 9. INSERT INTO orders (order_id, user_id, symbol, qty, price)
-    Backend->>DB: 10. UPDATE user_accounts SET cash_balance = cash_balance - amount
-    Backend->>DB: 11. COMMIT TRANSACTION
-    DB-->>Backend: 12. Transaction confirmed (TxID: 981240)
-    
-    Backend->>Gateway: 13. HTTP 201 Created (JSON Order Confirmation)
-    Gateway-->>Client: 14. Render Success Toast & Update Portfolio UI
-    Client-->>User: 15. View Execution Notice
+    %% 2. Pre-Trade Risk Verification
+    OrderSvc->>RiskSvc: 6. gRPC CheckMarginAndExposure(UserId: 8492, Symbol: RELIANCE, Qty: 100)
+    Note over OrderSvc,RiskSvc: In-memory evaluation: < 2ms latency
+    RiskSvc-->>OrderSvc: 7. Margin Approved (Required: ₹2,97,000 | Available: ₹3,50,000)
 
-    %% Phase 4: Change Data Capture & Streaming Ingestion
-    Note over DB,Kafka: Asynchronous Ingestion (Decoupled)
-    DB->>Kafka: 16. Stream Write-Ahead Log (WAL) event via Debezium CDC
-    Backend->>Kafka: 17. Produce OrderExecuted domain event (topic: trades.v1)
-    
-    %% Phase 5: ETL / Data Pipeline Transformation
-    Note over Pipeline,DW: Batch & Micro-Batch Analytics Ingestion
-    Pipeline->>Kafka: 18. Consume micro-batch of trade events
-    Pipeline->>DW: 19. Load raw bronze tables (stg_trades)
-    Pipeline->>Pipeline: 20. Run dbt models (Silver: deduplication, Gold: user_portfolio_daily)
-    Pipeline->>DW: 21. Materialize analytical tables & aggregate metrics
+    %% 3. ACID Persistence
+    Note over OrderSvc,Database: ACID Transaction Boundary (@Transactional)
+    OrderSvc->>Database: 8. BEGIN TRANSACTION
+    OrderSvc->>Database: 9. SELECT cash_balance FROM accounts WHERE user_id = 8492 FOR UPDATE
+    OrderSvc->>Database: 10. INSERT INTO orders (order_id, user_id, symbol, qty, price, status) VALUES (...)
+    OrderSvc->>Database: 11. UPDATE accounts SET cash_balance = cash_balance - 297000 WHERE user_id = 8492
+    OrderSvc->>Database: 12. COMMIT TRANSACTION
+    Database-->>OrderSvc: 13. Transaction Committed (TxID: 981240, Latency: ~4ms)
 
-    %% Phase 6: Analytics & Dashboard Refresh
-    DW->>Dashboard: 22. Scheduled / Triggered semantic layer refresh
-    Analyst->>Dashboard: 23. Query AUM, Daily Volume & Sector Exposure
-    Dashboard-->>Analyst: 24. Render interactive charts & risk attribution metrics
+    OrderSvc->>Gateway: 14. HTTP 201 Created (OrderExecutionReceipt JSON)
+    Gateway-->>Trader: 15. Render UI Confirmation Toast & Live Portfolio Refresh
+
+    %% 4. Streaming CDC Ingestion
+    Note over Database,Kafka: Asynchronous Decoupled Event Pipeline
+    Database->>Kafka: 16. Stream PostgreSQL WAL Record via Debezium CDC (< 100ms lag)
+    OrderSvc->>Kafka: 17. Produce Domain Event: OrderExecutedEvent to topic 'trades.v1' (acks=all)
+
+    %% 5. Analytical Transformation (dbt & Airflow)
+    Note over Kafka,DW: Micro-Batch / Scheduled Lakehouse Ingestion
+    ETL->>Kafka: 18. Ingest micro-batch of trade events (Kafka Consumer)
+    ETL->>DW: 19. Stage raw records into Bronze table: 'bronze.stg_trade_events'
+    ETL->>ETL: 20. Run dbt model execution (Silver deduplication, Gold aggregate marts)
+    ETL->>DW: 21. Materialize Gold Fact Table: 'gold.fact_daily_trading_positions'
+    
+    %% 6. Analytics & Portfolio Management
+    DW->>BI: 22. Invalidate cache & update Semantic Layer Aggregates
+    Analyst->>BI: 23. Query AUM, Daily Liquidity Exposure & VaR Concentration
+    BI-->>Analyst: 24. Render real-time equity risk waterfall & performance attribution
 ```
 
 ---
 
-## 3. Deep Technical Explanations
+## 5. Technical Specifications
 
-### 3.1 Client-Server Architecture
+### 5.1 Client-Server Protocols & Communication Architecture
 
-The foundation of modern web systems relies on a distributed Client-Server model operating under clear separation of concerns:
-
-```
-┌─────────────────────────────────┐                 ┌─────────────────────────────────┐
-│          Client Layer           │                 │          Server Layer           │
-│  • Presentation & UI Logic      │  HTTP/2 (REST)  │  • Business Rules Enforcement   │
-│  • Local State Management       │ ───────────────>│  • Transaction Management       │
-│  • Optimistic UI Updates        │ <────────────── │  • Multi-Tier Security & ACLs   │
-│  • Input Validation             │   WebSocket     │  • Data Persistence Orchestration│
-└─────────────────────────────────┘                 └─────────────────────────────────┘
-```
-
-1. **Protocol Standards**:
-   - **HTTPS / REST (HTTP/2 & HTTP/3)**: Primary protocol for transactional commands (CRUD). Utilizes multiplexed TCP/QUIC streams, binary framing, and HPACK header compression to minimize latency.
-   - **WebSockets (`wss://`)**: Bi-directional, full-duplex persistent connections essential for live financial tickers, real-time Level 2 order books, and price streaming without polling overhead.
-   - **gRPC (Protocol Buffers over HTTP/2)**: Deployed for high-performance East-West (service-to-service) internal microservice communication, reducing serialization CPU overhead by up to $7\times$ compared to JSON.
-2. **Statelessness Principle**:
-   - Every incoming HTTP request must contain all context, authorization credentials, and metadata required for execution. The backend preserves no in-memory session affinity for specific clients, allowing elastic horizontal autoscaling (Kubernetes HPA) across hundreds of stateless worker pods behind a load balancer.
-3. **Caching Hierarchy**:
-   - **Edge Tier (CDN)**: Cloudflare/CloudFront caches immutable static assets (JS bundles, CSS, fonts) and public stock master list endpoints (`stale-while-revalidate`).
-   - **Application Cache**: Redis Cluster provides sub-millisecond retrieval for volatile session states, user permissions, and real-time top-of-book market prices.
-   - **Database Buffer Pool**: In-memory relational cache minimizing physical disk I/O on hot database pages.
+1. **HTTP/2 & HTTP/3 Transport**:
+   - Deploys binary framing, multiplexed stream channels over a single TCP/QUIC connection, and HPACK header compression.
+   - Eliminates head-of-line blocking at the application tier.
+2. **WebSocket Full-Duplex Feeds (`wss://`)**:
+   - Used for streaming binary Level 2 market depth, order book ticks, and trade execution notices directly to client WebSockets.
+   - Avoids repetitive HTTP polling overhead ($<5\text{ms}$ socket push latency).
+3. **gRPC East-West Service Communication**:
+   - Inter-microservice calls (e.g., Order Service $\rightarrow$ Pre-Trade Risk Engine) operate over gRPC using Protocol Buffers (`proto3`).
+   - Binary serialization minimizes CPU parsing overhead by over $70\%$ compared to standard REST/JSON over HTTP/1.1.
+4. **Stateless Scalability**:
+   - Application servers store zero in-memory session state; horizontal pod autoscaling (Kubernetes HPA) automatically scales worker nodes from 5 to 50 pods during market open volatility surges (09:15–09:45 IST).
 
 ---
 
-### 3.2 Authentication & Authorization Architecture
-
-A zero-trust security paradigm governs access across the external perimeter and internal services:
+### 5.2 Authentication, Authorization & Security Architecture
 
 ```
-  Client Login                   API Gateway                     Auth Server (IdP)
-       │                              │                                  │
-       │── 1. POST /oauth/token ─────>│─────────────────────────────────>│
-       │   (Client ID + Secret/Code)  │                                  │
-       │                              │                                  │
-       │<── 2. Return Access + ───────│<─────────────────────────────────│
-       │       Refresh Token Pair     │                                  │
-       │                              │                                  │
-       │── 3. GET /orders ───────────>│                                  │
-       │   (Bearer Access Token)      │── 4. Verify Signature (RS256) ──>│
-       │                              │      Check exp, iss, aud, claims │
-       │                              │                                  │
-       │                              │── 5. Forward with Context ─────> Backend Microservice
+  Client Terminal                API Gateway (Kong)               Identity Provider (IdP)
+         │                               │                                   │
+         │── 1. POST /oauth/token ──────>│──────────────────────────────────>│
+         │   (Auth Code + PKCE Verifier) │                                   │
+         │                               │                                   │
+         │<── 2. Access + Refresh Token ─│<──────────────────────────────────│
+         │       (RS256 JWT, 15 min exp) │                                   │
+         │                               │                                   │
+         │── 3. GET /orders (Bearer JWT)─>│                                   │
+         │                               │── 4. Verify RS256 Sig via JWKS ──>│
+         │                               │      Validate exp, iss, claims    │
+         │                               │                                   │
+         │                               │── 5. Forward validated context ──> Core Backend
 ```
 
-1. **OAuth 2.0 & OpenID Connect (OIDC)**:
-   - **OIDC**: Identity verification layer on top of OAuth 2.0, providing standard user profile claims (`sub`, `email`, `email_verified`).
-   - **Authorization Code Flow with PKCE (Proof Key for Code Exchange)**: Mandatory flow for Single Page Applications (SPAs) and mobile devices to prevent authorization code interception without client secrets.
-2. **JSON Web Token (JWT) Anatomy**:
-   - **Header**: Contains cryptographic algorithm specification (`{"alg": "RS256", "typ": "JWT"}`).
-   - **Payload**: Contains standard claims (`iss`, `sub`, `aud`, `exp`, `iat`) and domain claims (`roles: ["analyst"], tenant_id: "IN_BLU"`).
-   - **Signature**: Asymmetric verification where the Identity Provider signs the token with a **Private Key** and distributed services verify validity using the IdP's cached **Public Key (JWKS)** without network round-trips.
-3. **Role-Based Access Control (RBAC) vs. Attribute-Based Access Control (ABAC)**:
-   - **RBAC**: Static role assignments (e.g., `ROLE_RETAIL_TRADER`, `ROLE_COMPLIANCE_OFFICER`, `ROLE_DATA_ANALYST`).
-   - **ABAC**: Fine-grained contextual policies evaluating subject, resource, action, and environment (e.g., *Allow data analyst to read `fact_trades` ONLY during trading hours IF connection originates from corporate VPN*).
+1. **OAuth 2.0 with PKCE (Proof Key for Code Exchange)**:
+   - Mandatory authorization framework for single-page applications and mobile terminals, mitigating authorization code injection without storing hardcoded client secrets.
+2. **RS256 Asymmetric Cryptographic Signing**:
+   - Identity Providers sign access tokens using a **Private RSA Key (2048-bit)**.
+   - API Gateways and microservices independently verify cryptographic signatures using the IdP's cached **JSON Web Key Set (JWKS)** public endpoint without requiring network trips per request.
+3. **Fine-Grained RBAC & ABAC Enforcement**:
+   - **Role-Based Access Control (RBAC)**: Governs baseline capabilities (`ROLE_RETAIL_TRADER`, `ROLE_PORTFOLIO_ANALYST`, `ROLE_COMPLIANCE`).
+   - **Attribute-Based Access Control (ABAC)**: Enforces dynamic operational constraints:
+     $$\text{Access Granted} \iff (\text{Role} = \text{'Analyst'}) \land (\text{IP} \in \text{Corporate VPN}) \land (\text{Time} \in [08:00, 18:00\text{ IST}])$$
 4. **Token Security Lifecycle**:
-   - **Short-Lived Access Tokens**: Expire in 15 minutes to reduce exposure windows upon token leakage.
-   - **Refresh Tokens & Rotation**: Stored in secure `HttpOnly`, `SameSite=Strict` cookies. Every refresh token usage invalidates the prior token and generates a new pair, mitigating replay attacks.
+   - Short-lived Access Tokens (15-minute expiry).
+   - Refresh tokens stored in encrypted `HttpOnly`, `SameSite=Strict`, `Secure` cookies with automatic token rotation on every exchange.
 
 ---
 
-### 3.3 Enterprise Logging & Distributed Tracing
+### 5.3 Structured Logging, Telemetry & Distributed Tracing
 
-Structured logging enables operational visibility, compliance auditing (mandated by SEBI for financial transactions), and post-mortem root-cause analysis:
+Structured JSON log payloads ensure machine-parseability across centralized log aggregators (ELK / Grafana Loki):
 
 ```json
 {
-  "timestamp": "2026-10-18T10:45:12.891Z",
+  "timestamp": "2026-10-18T11:05:12.891Z",
   "level": "INFO",
   "service": "order-execution-service",
   "trace_id": "c4b8e912-32a1-4f90-b184-e910248a7b11",
@@ -233,96 +307,73 @@ Structured logging enables operational visibility, compliance auditing (mandated
 }
 ```
 
-1. **Hierarchical Log Levels**:
-   - `DEBUG`: Granular technical checkpoints for local/staging debugging (disabled in production).
-   - `INFO`: Normal operational milestones (user login, order placed, batch ETL completed).
-   - `WARN`: Anomalies that were handled gracefully (rate limit throttled, fallback cache used).
-   - `ERROR`: Recoverable component failures requiring engineering attention (database query timeout, payment gateway rejected).
-   - `FATAL`: Unrecoverable crashes causing service termination (database cluster unreachable, corrupted configuration).
-2. **Centralized Log Aggregation Pipeline**:
-   - Microservice stdout $\rightarrow$ DaemonSet collector (Fluentbit / Vector) $\rightarrow$ Buffer queue (Kafka) $\rightarrow$ Search index (Elasticsearch / OpenSearch / Grafana Loki) $\rightarrow$ Visualization (Kibana / Grafana).
-3. **Correlation ID & OpenTelemetry Distributed Tracing**:
-   - The API Gateway injects an `X-Correlation-ID` (`traceparent` under W3C standard) into every ingress request. This header propagates through every downstream HTTP call, Kafka message header, and database query tag (`/* trace_id=... */`), enabling holistic visualization of request latency waterfalls across the entire topology.
+1. **W3C Distributed Tracing (`traceparent`)**:
+   - The edge gateway injects an `X-Correlation-ID` into every incoming request.
+   - This unique identifier propagates downstream across HTTP headers, Kafka message headers, and database comment tags (`/* trace_id=... */`), allowing end-to-end waterfall latency tracing in OpenTelemetry / Jaeger.
+2. **Log Tiers**:
+   - `DEBUG`: Internal execution steps (active in development / staging only).
+   - `INFO`: Normal state mutations (order accepted, trade settled, batch model completed).
+   - `WARN`: Recoverable operational anomalies (rate-limit backoff engaged, secondary fallback endpoint triggered).
+   - `ERROR`: Component-level failures requiring immediate alerting (payment webhook signature failed, database deadlock retried).
+   - `FATAL`: Unrecoverable service crashes requiring emergency on-call intervention.
 
 ---
 
-### 3.4 Robust Error Handling & Resilience Patterns
+### 5.4 Error Contracts & Distributed System Resilience
 
-Systems must fail predictably, communicate errors unambiguously to clients, and protect downstream dependencies:
-
-1. **HTTP Status Code Standardization**:
-   - `2xx (Success)`: `200 OK`, `201 Created` (resource initialized), `202 Accepted` (async job queued).
-   - `4xx (Client Errors)`: `400 Bad Request` (schema validation failed), `401 Unauthorized` (missing/invalid JWT), `403 Forbidden` (insufficient privileges), `409 Conflict` (idempotency key violation), `422 Unprocessable Entity` (insufficient margin funds).
-   - `5xx (Server Errors)`: `500 Internal Error` (unhandled exception), `502 Bad Gateway` (upstream microservice unreachable), `503 Service Unavailable` (circuit breaker open).
-2. **Standardized RFC 7807 Error Contract**:
-   Every error payload adheres to machine-readable Problem Details formatting:
+1. **Standardized RFC 7807 Problem Details Specification**:
    ```json
    {
-     "type": "https://api.bluestock.in/errors/insufficient-funds",
-     "title": "Insufficient Account Balance",
+     "type": "https://api.bluestock.in/errors/insufficient-margin",
+     "title": "Pre-Trade Margin Shortfall",
      "status": 422,
-     "detail": "Order requires ₹2,97,000. Available cash balance is ₹1,42,500.",
-     "instance": "/orders/tx_981240",
-     "code": "ACC_INSUFFICIENT_MARGIN",
-     "timestamp": "2026-10-18T10:45:13Z"
+     "detail": "Order placement requires ₹2,97,000.00. Current available margin is ₹1,42,500.00.",
+     "instance": "/orders/req_c4b8e912",
+     "code": "RMS_MARGIN_DEFICIT",
+     "timestamp": "2026-10-18T11:05:13Z"
    }
    ```
-3. **Resilience & Fault Tolerance Patterns**:
-   - **Exponential Backoff with Full Jitter**: Client retries calculate delay as:
-     $$\text{Sleep} = \text{random}(0, \min(M, B \times 2^{\text{attempt}}))$$
-     Preventing "thundering herd" spikes against recovering backend databases.
-   - **Circuit Breaker (Netflix Hystrix / Resilience4j)**: Monitors upstream failure rates. If error percentage exceeds $50\%$ across a 10-second window, the breaker switches to **OPEN**, immediately rejecting calls without saturating threads, returning fallback cached market data.
-   - **Idempotency Keys (`Idempotency-Key: UUID`)**: Passed in order placement requests. If network times out and client retries, server returns cached original execution result rather than double-booking duplicate stock orders.
+2. **Exponential Backoff with Full Jitter**:
+   $$\text{Backoff Duration} = \text{random}\left(0, \min(M, B \times 2^{\text{attempt}})\right)$$
+   *Where $B = 1.5\text{s}$ base, $M = 30\text{s}$ maximum. Full random jitter prevents thundering-herd synchronicity against recovering infrastructure.*
+3. **Circuit Breaker State Machine**:
+   - Monitors upstream microservice failure rates using a sliding window of 100 requests.
+   - If error rate exceeds $50\%$, the circuit transitions from **CLOSED** to **OPEN**, failing fast without exhausting threads and serving cached Level 2 market data.
+   - After a 30-second cooldown, transitions to **HALF-OPEN** to test upstream recovery before resuming normal operations.
 
 ---
 
-## 4. The SDLC Lifecycle from a Data Analyst's Perspective
+### 5.5 The SDLC Lifecycle from a Data Analyst's Perspective
 
-The modern Data Analyst is not merely an end-user of dashboards, but an active engineering co-owner of the software development lifecycle:
+Data analysts operate as full software engineering stakeholders within modern Medallion data lakehouses:
 
 ```
-┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
-│ 1. Requirements │       │ 2. Data Contract│       │ 3. Pipeline Dev │
-│  & Metric Specs │ ────> │  & Schemas      │ ────> │  (dbt / SQL)    │
-└─────────────────┘       └─────────────────┘       └─────────────────┘
-                                                             │
-┌─────────────────┐       ┌─────────────────┐                │
-│ 6. Observability│       │ 5. CI/CD &      │                ▼
-│  & Monitoring   │ <──── │  Deployment     │ <──── ┌─────────────────┐
-└─────────────────┘       └─────────────────┘       │ 4. Quality &    │
-                                                    │    Reconciliation│
-                                                    └─────────────────┘
+┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
+│  1. Metric & Spec│       │ 2. Data Contracts│       │ 3. Analytics Eng │
+│   Governance     │ ────> │  & Schema Models │ ────> │  (dbt / SQL)     │
+└──────────────────┘       └──────────────────┘       └──────────────────┘
+                                                               │
+┌──────────────────┐       ┌──────────────────┐                │
+│ 6. Observability │       │ 5. CI/CD Pipeline│                ▼
+│  & Drift Monitor │ <──── │  & Deployment    │ <──── ┌──────────────────┐
+└──────────────────┘       └──────────────────┘       │ 4. Quality Gates │
+                                                      │  & Reconciliation│
+                                                      └──────────────────┘
 ```
 
-### Phase 1: Requirements Engineering & Metric Governance
-- **Business Alignment**: Translate executive objectives into deterministic mathematical definitions (e.g., Defining *Daily Active Traders* as users executing $\ge 1$ filled order within normal market hours 09:15–15:30 IST).
-- **Metric Dictionaries**: Formal documentation of single-source-of-truth formulas to eliminate discrepancy between BI dashboards and regulatory compliance filings.
-
-### Phase 2: Data Modeling & Contract Definition
-- **Data Contracts**: Establishing enforceable schemas between upstream software engineers (OLTP production DB) and data analysts (OLAP).
-- **Dimensional Modeling**: Designing Star and Snowflake schemas:
-  - **Fact Tables**: `fact_trades`, `fact_order_executions`, `fact_ledger_transactions` (additive, high-volume append-only).
-  - **Dimension Tables**: `dim_users`, `dim_equities`, `dim_exchanges`, `dim_calendar` (SCD Type 2 tracking historical profile updates).
-
-### Phase 3: Analytics Engineering & Pipeline Development
-- **Transformation as Code (`dbt`)**: Writing modular, version-controlled SQL models leveraging Common Table Expressions (CTEs).
-- **Multi-Hop Medallion Architecture**:
-  - **Bronze (Raw)**: Unaltered raw CDC dumps from Kafka.
-  - **Silver (Conformed)**: Deduplicated, type-casted, cleaned event models.
-  - **Gold (Aggregated)**: Business-ready datamarts and pre-aggregated KPI tables powering sub-second dashboard rendering.
-
-### Phase 4: Automated Testing & Data Quality Assurance
-- **Unit & Schema Assertions**: Executing automated dbt tests on every pull request (`not_null`, `unique`, `accepted_values`, `relationships`).
-- **Statistical Assertions (Great Expectations)**: Testing volume thresholds, anomalous spikes (e.g., trade volume outside $3\sigma$ normal distribution), and temporal freshness.
-- **Financial Reconciliation Checks**: Automated zero-variance reconciliation between aggregate ledger debits and clearinghouse settlement payouts:
-  $$\Delta = \sum \text{Ledger Debits} - \sum \text{Ledger Credits} \equiv 0$$
-
-### Phase 5: CI/CD Deployment & Orchestration
-- **Git Feature Branching**: Analysts write SQL/dbt code in isolated Git branches, running automated test suites in temporary database schemas (PR sandbox).
-- **DAG Orchestration**: Defining Directed Acyclic Graphs (DAGs) in Apache Airflow or Dagster with explicit task dependencies, retries, and SLA breach monitors.
-- **Zero-Downtime Blue/Green Deployments**: Atomic table swaps via warehouse view aliasing or table clones (`CREATE OR REPLACE TABLE AS SELECT`).
-
-### Phase 6: Observability, Drift Detection & Maintenance
-- **Schema Drift Alerting**: Automated notifications when software engineers alter production DB column names or data types before pipelines break.
-- **Data Freshness SLAs**: Alerting on stale data when the pipeline lag exceeds predefined thresholds (e.g., market tick data latency $> 60$ seconds).
-- **Continuous Feedback**: Iterating on dashboard performance, decommissioning unused reports, and indexing high-cost warehouse analytical queries.
+1. **Requirements Governance & Metric Dictionaries**:
+   - Formulates single-source-of-truth definitions for core business metrics (e.g., defining *Active Trading Client* as an account executing $\ge 1$ order per rolling 30-day window).
+2. **Data Contracts & Schema Mapping**:
+   - Formal agreements between transactional engineering teams (OLTP producers) and analytics consumers, preventing unannounced column drops or type mutations from breaking downstream pipelines.
+3. **Modular dbt Transformations (Medallion Pattern)**:
+   - **Bronze**: Append-only raw ingested events from Kafka/Debezium.
+   - **Silver**: Deduplicated, cleaned, type-cast dimensional models with surrogate keys.
+   - **Gold**: High-performance aggregate datamarts optimized for sub-second BI query latency.
+4. **Automated Quality Testing & Reconciliation**:
+   - Automated dbt schema tests (`not_null`, `unique`, `relationships`) executed on pull requests.
+   - **Zero-Variance Financial Reconciliation**: Mathematical assertions verifying that aggregate cash ledger debits equal clearinghouse net settlement credits:
+     $$\Delta = \left| \sum \text{Ledger Debits} - \sum \text{Settlement Credits} \right| \equiv 0.00$$
+5. **CI/CD Pipeline & Orchestration**:
+   - Airflow DAGs version-controlled in Git, deploying tested models into production through zero-downtime blue/green table swapping.
+6. **Data Observability & Drift Detection**:
+   - Automated alerting on data freshness breaches, anomalous row count drops, and distribution drift before executive dashboards reflect corrupted states.
