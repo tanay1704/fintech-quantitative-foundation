@@ -65,6 +65,13 @@ This workspace is configured with specialized multi-agent capabilities, skills, 
 
 ---
 
+### 🛠️ Developer Experience & Pragmatic Engineering
+| Capability | Type | File / Path | Key Focus |
+| :--- | :--- | :--- | :--- |
+| **`ponytail`** | Skill | `.agents/skills/ponytail/SKILL.md` | Lazy senior dev mode: the smallest change that fully solves the task, avoiding bloat, over-engineering, and unnecessary code churn. |
+
+---
+
 ## 2. Execution Guidelines
 
 1. **Progressive Disclosure**: Detailed skill content is loaded on-demand when the respective task is active.
