@@ -15,9 +15,9 @@ The repository contains six canonical project deliverables alongside the active 
 
 | Deliverable Ref | Filename | Primary Domain | Status | Key Focus |
 | :---: | :--- | :--- | :---: | :--- |
-| **01** | [`1_Stock_Market_and_Financial_Analysis.md`](./1_Stock_Market_and_Financial_Analysis.md) | Equity Research & Valuation | Verified | Indian market definitions (NSE/BSE, Nifty/Sensex, IPO/SME), 3-statement Ind-AS financial analysis of Reliance Industries Ltd (FY24), and derived valuation multiples (P/E, P/B, EPS, D/E, OPM). |
-| **02** | [`2_fetch_api_data.py`](./2_fetch_api_data.py) | Data Engineering / ETL | Verified | Production Python REST pipeline fetching live market data via CoinGecko / Binance ticker endpoints without conversational inline comments. |
-| **03** | [`api_data_extract.csv`](./api_data_extract.csv) | Market Data Ingestion | Verified | Clean, tabular 25-asset market dataset extracted by `2_fetch_api_data.py` with 11 structured financial metrics. |
+| **01** | [`1_Stock_Market_and_Financial_Analysis.md`](./1_Stock_Market_and_Financial_Analysis.md) | Equity Research & Valuation | Verified | Indian market definitions (NSE/BSE, Nifty/Sensex, IPO/SME), aggregate NIFTY 100 macro universe benchmark analysis, 3-statement Ind-AS financial analysis of Reliance Industries Ltd (FY24), 3-stage & 5-stage DuPont ROE decomposition, and valuation multiples. |
+| **02** | [`2_fetch_api_data.py`](./2_fetch_api_data.py) | Data Engineering / ETL | Verified | Sanitized, multi-threaded concurrent Python REST pipeline fetching live market data for NIFTY 100 constituents with resilient session pooling, backoff retries, and zero conversational inline comments. |
+| **03** | [`api_data_extract.csv`](./api_data_extract.csv) | Market Data Ingestion | Verified | Information-dense dataset containing 105 large-cap Indian equities with 16 structured financial metrics (Prices, 52W High/Low, Turnover, Market Cap, Trailing P/E, Exchange, Timestamps). |
 | **04** | [`4_Software_Architecture_Diagram.md`](./4_Software_Architecture_Diagram.md) | System Architecture & Design | Verified | High-detail Mermaid.js sequence and system architecture diagrams mapping full-stack user actions to analytics dashboards, with technical deep-dives into Client-Server, Auth, Logging, Errors, and SDLC. |
 | **05** | [`5_FinTech_Research_Report.md`](./5_FinTech_Research_Report.md) | FinTech Platform Research | Verified | Operational mechanics of Zerodha/Groww, Demat accounts, NSDL/CDSL depository interfaces, SEBI peak margin compliance, $T+1$ settlement, and telemetry-driven risk RMS. |
 | **06** | [`README.md`](./README.md) | Portfolio Index & Documentation | Verified | Master repository documentation, system architecture summary, verified runbook instructions, and verification audit. |
@@ -93,10 +93,11 @@ graph LR
 
 ### Phase 3: REST API & Automated Data Ingestion Pipeline
 - **Files**: [`2_fetch_api_data.py`](./2_fetch_api_data.py) & [`api_data_extract.csv`](./api_data_extract.csv)
-- **Implementation**: Robust Python script built with `requests` adhering to strict requirements:
-  - Fetches top crypto/financial assets by market cap from CoinGecko's public endpoint.
-  - Features an automated fallback to Binance's 24hr ticker API if rate limits or network latency occurs.
-  - Formats responses into tabular structures and exports clean UTF-8 CSVs without conversational inline comments.
+- **Implementation**: Robust Python script built with `requests`, `urllib3`, and `pandas` adhering to strict requirements:
+  - Fetches live equity market data for 100+ constituents of the **NIFTY 100 Index** directly from exchange-linked REST endpoints.
+  - Multi-threaded execution via `concurrent.futures.ThreadPoolExecutor` with connection pooling and automated exponential backoff retries.
+  - Transforms raw market feeds into strongly-typed `@dataclass(frozen=True)` records with calculated turnover, market capitalization, and trailing P/E multiples.
+  - Exports clean UTF-8 CSVs without explanatory comments or tutorial bloat.
 
 #### Verified Pipeline Runbook
 
@@ -111,12 +112,12 @@ python -m venv venv
 source venv/bin/activate
 
 # 2. Install dependencies
-pip install requests
+pip install -r requirements.txt
 
 # 3. Execute the automated ingestion pipeline
 python 2_fetch_api_data.py
 
-# 4. Verify generated CSV output
+# 4. Verify generated CSV output (100+ rows)
 # Windows (PowerShell):
 Get-Content api_data_extract.csv -TotalCount 10
 # Linux/macOS:

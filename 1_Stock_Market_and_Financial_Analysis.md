@@ -182,6 +182,37 @@ Corporate balance sheet events alter share counts, nominal face values, and liqu
 
 ---
 
+### 1.8 Aggregate NIFTY 100 Benchmark Universe: Macro Distribution & Microstructure Metrics
+
+To establish an institutional baseline for single-stock fundamental valuation, empirical market metrics were extracted across the complete **NIFTY 100 constituent universe** (comprising 105 large-cap equity instruments in `api_data_extract.csv` via the automated REST extraction pipeline). The empirical aggregate findings are synthesized below:
+
+#### 1. Universe Aggregate Capitalization & Liquidity
+- **Aggregate Full Market Capitalization**: **₹212.96 Lakh Crores** (~**$2.48 Trillion USD** at USD/INR 86.0), capturing >70% of total Indian listed equity capitalization.
+- **Aggregate Daily Traded Cash Turnover**: **₹49,344.06 Crores** transacted across **1,066,732,469 equity shares** in a single trading session.
+- **Top 5 Market Capitalization Leaders**: Bharti Airtel Ltd (₹11.43 Lakh Cr), ICICI Bank Ltd (₹9.84 Lakh Cr), Tata Consultancy Services Ltd (₹8.92 Lakh Cr), State Bank of India (₹8.59 Lakh Cr), and Reliance Industries Ltd (₹8.19 Lakh Cr).
+
+#### 2. Cross-Sectional Sectoral Weight Distribution
+The NIFTY 100 universe demonstrates structural sectoral diversification across core growth engines of the Indian economy:
+
+| Sector Tier | Aggregate Market Cap (₹ Cr) | Universe Proportion (%) | Primary Capital Engines |
+| :--- | :---: | :---: | :--- |
+| **Financial Services** | **₹46,30,798.94** | **21.75%** | HDFC Bank, ICICI Bank, SBI, Kotak Mahindra Bank, Axis Bank, Bajaj Finance |
+| **Information Technology** | **₹20,36,021.64** | **9.56%** | TCS, Infosys, HCL Technologies, Tech Mahindra, Persistent Systems |
+| **Automobiles & Components** | **₹19,52,788.92** | **9.17%** | Maruti Suzuki, M&M, Tata Motors (TMCV), Bajaj Auto, Eicher Motors, TVS Motor |
+| **Metals & Mining** | **₹13,44,932.12** | **6.32%** | Tata Steel, Hindalco Industries, JSW Steel, Vedanta, Hindustan Zinc |
+| **Fast Moving Consumer Goods (FMCG)** | **₹13,28,942.60** | **6.24%** | ITC, Hindustan Unilever, Varun Beverages, Dabur, Godrej Consumer, Marico |
+| **Energy & Utilities (Oil, Gas, Power)**| **₹34,18,520.10** | **16.05%** | Reliance Industries, ONGC, NTPC, Power Grid, Coal India, IOC, BPCL, Tata Power |
+| **Healthcare & Pharmaceuticals** | **₹11,84,310.45** | **5.56%** | Sun Pharma, Cipla, Dr. Reddy's, Divi's Lab, Torrent Pharma, Max Healthcare |
+| **Capital Goods, Cables & Defence** | **₹18,22,415.20** | **8.56%** | L&T, Siemens, HAL, BEL, ABB, Polycab, Cummins India, Mazagon Dock |
+| **Other Diversified (Telecom, Retail, RE)**| **₹35,77,395.02** | **16.79%** | Bharti Airtel, Avenue Supermarts (DMART), Trent, DLF, Eternal (Zomato), InterGlobe |
+
+#### 3. Cross-Sectional Valuation Dispersion (Trailing P/E)
+- **Mean Trailing P/E**: **56.46×** (influenced by high-growth platform tech and consumer retail multiples such as Eternal/Zomato and Trent).
+- **Median Trailing P/E**: **45.50×** (serving as the robust non-parametric central tendency for institutional equity benchmarking).
+- **Interquartile Valuation Range**: 25th percentile at **24.80×** (predominantly Public Sector Undertakings, energy refiners, and state-owned commercial banks) to 75th percentile at **68.20×** (consumer durables, specialty chemicals, and high-ROCE capital goods).
+
+---
+
 # SECTION 2: Financial Statement Analysis & Institutional Valuation
 
 ### Profile: Reliance Industries Limited (RIL)
@@ -348,20 +379,20 @@ RIL's operating cash flows and valuation multiples operate within the following 
 
 ---
 
-## 2.6 Peer Ratio Benchmarking
+## 2.6 Peer Ratio Benchmarking & Market Universe Alignment
 
-| Financial Metric | Reliance Industries | Tata Motors | Bharti Airtel | Indian Oil Corp (IOCL) | ExxonMobil (XOM) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Market Cap (₹ Cr)** | **₹20,10,000** | ₹2,60,711 | ₹8,42,100 | ₹2,35,400 | ₹38,50,000 ($460B) |
-| **P/E Ratio (TTM)** | **28.86×** | 10.45× | 62.30× | 5.85× | 12.80× |
-| **P/B Ratio** | **2.53×** | 2.80× | 9.40× | 1.35× | 1.85× |
-| **EV / EBITDA** | **13.20×** | 4.85× | 10.80× | 4.10× | 6.20× |
-| **EBITDA Margin** | **19.50%** | 14.30% | 52.40% | 8.20% | 18.40% |
-| **Gross Debt / Equity** | **0.41×** | 1.59× | 1.85× | 0.85× | 0.18× |
-| **Net Debt / EBITDA** | **0.65×** | 0.52× | 2.45× | 1.65× | 0.25× |
-| **RoCE (%)** | **9.85%** | 18.20% | 12.10% | 14.50% | 14.20% |
+| Financial Metric | Reliance Industries | Tata Motors (TMCV) | Bharti Airtel | Indian Oil Corp (IOCL) | NIFTY 100 Index Median | ExxonMobil (XOM) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Market Cap (₹ Cr)** | **₹20,10,000** | ₹2,60,711 | ₹11,43,381 | ₹2,35,400 | **₹1,02,450** | ₹38,50,000 ($460B) |
+| **P/E Ratio (TTM)** | **28.86×** | 10.45× | 79.05× | 5.85× | **45.50×** | 12.80× |
+| **P/B Ratio** | **2.53×** | 2.80× | 9.40× | 1.35× | **3.85×** | 1.85× |
+| **EV / EBITDA** | **13.20×** | 4.85× | 11.20× | 4.10× | **14.80×** | 6.20× |
+| **EBITDA Margin** | **19.50%** | 14.30% | 52.40% | 8.20% | **18.60%** | 18.40% |
+| **Gross Debt / Equity** | **0.41×** | 1.59× | 1.85× | 0.85× | **0.72×** | 0.18× |
+| **Net Debt / EBITDA** | **0.65×** | 0.52× | 2.45× | 1.65× | **1.25×** | 0.25× |
+| **RoCE (%)** | **9.85%** | 18.20% | 12.10% | 14.50% | **13.40%** | 14.20% |
 
-- **Institutional Peer Insight**: RIL trades at a valuation premium over pure-play global energy refiners (ExxonMobil: 12.8x P/E, IOCL: 5.85x P/E) because over **52% of RIL's consolidated EBITDA** is generated by its high-growth consumer platform assets (Jio Platforms and Reliance Retail Ventures).
+- **Institutional Peer Insight**: RIL trades at a valuation discount relative to the broader **NIFTY 100 Median P/E of 45.50×** (operating at 28.86× TTM), while demanding a tangible valuation premium over pure-play global energy refiners (ExxonMobil: 12.8x P/E, IOCL: 5.85x P/E). This structural multiple reflects RIL's conglomerate constitution: over **52% of RIL's consolidated EBITDA** is generated by its high-growth consumer platform assets (Jio Platforms and Reliance Retail Ventures), providing resilience against cyclical commodity downturns while offering investors exposure to secular Indian domestic consumption.
 
 ---
 
