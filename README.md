@@ -11,7 +11,7 @@ An institutional-grade engineering and financial research repository developed f
 
 ## Deliverables Index & Verification Matrix
 
-The repository contains six canonical project deliverables alongside the active multi-agent capability framework:
+The repository contains six canonical project deliverables alongside configuration templates and dependencies:
 
 | Deliverable Ref | Filename | Primary Domain | Status | Key Focus |
 | :---: | :--- | :--- | :---: | :--- |
@@ -22,7 +22,6 @@ The repository contains six canonical project deliverables alongside the active 
 | **05** | [`5_FinTech_Research_Report.md`](./5_FinTech_Research_Report.md) | FinTech Platform Research | Verified | Operational mechanics of Zerodha/Groww, Demat accounts, NSDL/CDSL depository interfaces, SEBI peak margin compliance, $T+1$ settlement, and telemetry-driven risk RMS. |
 | **06** | [`README.md`](./README.md) | Portfolio Index & Documentation | Verified | Master repository documentation, system architecture summary, verified runbook instructions, and verification audit. |
 | **Config** | [`requirements.txt`](./requirements.txt) | Dependency Manifest | Verified | Pinned Python production dependencies (`requests>=2.31.0`, `urllib3>=2.0.0`, `pandas>=2.0.0`). |
-
 
 ---
 
@@ -115,16 +114,10 @@ source venv/bin/activate
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Configure environment settings
-# Windows (PowerShell):
-Copy-Item .env.example .env
-# Linux/macOS:
-cp .env.example .env
-
-# 4. Execute the automated ingestion pipeline
+# 3. Execute the automated ingestion pipeline
 python 2_fetch_api_data.py
 
-# 5. Verify generated CSV output (100+ rows)
+# 4. Verify generated CSV output (100+ rows)
 # Windows (PowerShell):
 Get-Content api_data_extract.csv -TotalCount 10
 # Linux/macOS:
@@ -167,9 +160,8 @@ head -n 10 api_data_extract.csv
 | `4_Software_Architecture_Diagram.md` | Markdown Diagram/Spec | 20,009 | Tracked & Verified | C4 Level 1-3 + Sequence |
 | `5_FinTech_Research_Report.md` | Markdown Report | 30,717 | Tracked & Verified | Institutional Research |
 | `api_data_extract.csv` | CSV Dataset | 16,666 | Tracked & Verified | 105 Rows (0 NaNs) |
-| `README.md` | Repository Index | ~11,500 | Tracked & Verified | Synchronized |
+| `README.md` | Repository Index | ~11,000 | Tracked & Verified | Synchronized |
 | `requirements.txt` | Dependencies | 46 | Tracked & Verified | Production Ready |
-
 
 ---
 
@@ -187,4 +179,3 @@ git remote add origin https://github.com/tanay1704/fintech-quantitative-foundati
 # 3. Push all commits and set upstream tracking
 git push -u origin main
 ```
-
