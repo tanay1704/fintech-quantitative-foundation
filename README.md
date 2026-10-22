@@ -21,9 +21,8 @@ The repository contains six canonical project deliverables alongside the active 
 | **04** | [`4_Software_Architecture_Diagram.md`](./4_Software_Architecture_Diagram.md) | System Architecture & Design | Verified | High-detail Mermaid.js sequence and system architecture diagrams mapping full-stack user actions to analytics dashboards, with technical deep-dives into Client-Server, Auth, Logging, Errors, and SDLC. |
 | **05** | [`5_FinTech_Research_Report.md`](./5_FinTech_Research_Report.md) | FinTech Platform Research | Verified | Operational mechanics of Zerodha/Groww, Demat accounts, NSDL/CDSL depository interfaces, SEBI peak margin compliance, $T+1$ settlement, and telemetry-driven risk RMS. |
 | **06** | [`README.md`](./README.md) | Portfolio Index & Documentation | Verified | Master repository documentation, system architecture summary, verified runbook instructions, and verification audit. |
-| **Config** | [`.env.example`](./.env.example) | Environment Configuration | Verified | Structured environment variable template documenting pipeline concurrency, timeouts, logging, and REST endpoint settings. |
 | **Config** | [`requirements.txt`](./requirements.txt) | Dependency Manifest | Verified | Pinned Python production dependencies (`requests>=2.31.0`, `urllib3>=2.0.0`, `pandas>=2.0.0`). |
-| **Core** | [`AGENTS.md`](./AGENTS.md) | Multi-Agent Capabilities | Verified | Workspace agent definitions, skills matrix, and operational bindings for Web Research, Financial Analysis, Technical Writing, Diagramming, and Data Extraction. |
+
 
 ---
 
@@ -165,13 +164,12 @@ head -n 10 api_data_extract.csv
 | :--- | :---: | :---: | :---: | :---: |
 | `1_Stock_Market_and_Financial_Analysis.md` | Markdown Report | 34,704 | Tracked & Verified | Fully Reconciled |
 | `2_fetch_api_data.py` | Python Script | 18,438 | Tracked & Verified | PEP-8 Compliant |
-| `api_data_extract.csv` | CSV Dataset | 16,666 | Tracked & Verified | 105 Rows (0 NaNs) |
 | `4_Software_Architecture_Diagram.md` | Markdown Diagram/Spec | 20,009 | Tracked & Verified | C4 Level 1-3 + Sequence |
 | `5_FinTech_Research_Report.md` | Markdown Report | 30,717 | Tracked & Verified | Institutional Research |
+| `api_data_extract.csv` | CSV Dataset | 16,666 | Tracked & Verified | 105 Rows (0 NaNs) |
 | `README.md` | Repository Index | ~11,500 | Tracked & Verified | Synchronized |
-| `.env.example` | Environment Template | 545 | Tracked & Verified | Production Ready |
 | `requirements.txt` | Dependencies | 46 | Tracked & Verified | Production Ready |
-| `AGENTS.md` | Capability Rules | 6,523 | Tracked & Verified | Multi-Agent Matrix |
+
 
 ---
 
