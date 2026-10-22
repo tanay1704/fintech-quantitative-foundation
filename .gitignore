@@ -26,6 +26,7 @@ share/python-wheels/
 *.egg
 
 # Virtual environments
+.venv/
 venv/
 env/
 ENV/
@@ -37,12 +38,16 @@ venv.bak/
 .env.*
 !.env.example
 
-# IDE & Editor files
-.vscode/
-.idea/
+# Temporary artifacts & editor swap files
+*.tmp
+*.bak
+*~
 *.swp
 *.swo
+.vscode/
+.idea/
 
 # OS files
 .DS_Store
 Thumbs.db
+

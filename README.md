@@ -21,6 +21,8 @@ The repository contains six canonical project deliverables alongside the active 
 | **04** | [`4_Software_Architecture_Diagram.md`](./4_Software_Architecture_Diagram.md) | System Architecture & Design | Verified | High-detail Mermaid.js sequence and system architecture diagrams mapping full-stack user actions to analytics dashboards, with technical deep-dives into Client-Server, Auth, Logging, Errors, and SDLC. |
 | **05** | [`5_FinTech_Research_Report.md`](./5_FinTech_Research_Report.md) | FinTech Platform Research | Verified | Operational mechanics of Zerodha/Groww, Demat accounts, NSDL/CDSL depository interfaces, SEBI peak margin compliance, $T+1$ settlement, and telemetry-driven risk RMS. |
 | **06** | [`README.md`](./README.md) | Portfolio Index & Documentation | Verified | Master repository documentation, system architecture summary, verified runbook instructions, and verification audit. |
+| **Config** | [`.env.example`](./.env.example) | Environment Configuration | Verified | Structured environment variable template documenting pipeline concurrency, timeouts, logging, and REST endpoint settings. |
+| **Config** | [`requirements.txt`](./requirements.txt) | Dependency Manifest | Verified | Pinned Python production dependencies (`requests>=2.31.0`, `urllib3>=2.0.0`, `pandas>=2.0.0`). |
 | **Core** | [`AGENTS.md`](./AGENTS.md) | Multi-Agent Capabilities | Verified | Workspace agent definitions, skills matrix, and operational bindings for Web Research, Financial Analysis, Technical Writing, Diagramming, and Data Extraction. |
 
 ---
@@ -114,10 +116,16 @@ source venv/bin/activate
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Execute the automated ingestion pipeline
+# 3. Configure environment settings
+# Windows (PowerShell):
+Copy-Item .env.example .env
+# Linux/macOS:
+cp .env.example .env
+
+# 4. Execute the automated ingestion pipeline
 python 2_fetch_api_data.py
 
-# 4. Verify generated CSV output (100+ rows)
+# 5. Verify generated CSV output (100+ rows)
 # Windows (PowerShell):
 Get-Content api_data_extract.csv -TotalCount 10
 # Linux/macOS:
@@ -153,15 +161,17 @@ head -n 10 api_data_extract.csv
 
 ## Final Deliverables Verification Audit
 
-| File / Component | Type | Size (Bytes) | Git Tracking Status | Verification SHA |
+| File / Component | Type | Size (Bytes) | Git Tracking Status | Verification Status |
 | :--- | :---: | :---: | :---: | :---: |
-| `1_Stock_Market_and_Financial_Analysis.md` | Markdown Report | 18,940 | Tracked & Committed | `d99e572` |
-| `2_fetch_api_data.py` | Python Script | 3,365 | Tracked & Committed | `15c1721` |
-| `api_data_extract.csv` | CSV Dataset | 2,897 | Tracked & Committed | `15c1721` |
-| `4_Software_Architecture_Diagram.md` | Markdown Diagram/Spec | 19,812 | Tracked & Committed | `142fccd` |
-| `5_FinTech_Research_Report.md` | Markdown Report | 20,410 | Tracked & Committed | `1f17863` |
-| `README.md` | Repository Index | ~8,500 | Tracked & Staged | Pending Final Commit |
-| `AGENTS.md` | Capability Rules | 4,210 | Tracked & Committed | `d99e572` |
+| `1_Stock_Market_and_Financial_Analysis.md` | Markdown Report | 34,704 | Tracked & Verified | Fully Reconciled |
+| `2_fetch_api_data.py` | Python Script | 18,438 | Tracked & Verified | PEP-8 Compliant |
+| `api_data_extract.csv` | CSV Dataset | 16,666 | Tracked & Verified | 105 Rows (0 NaNs) |
+| `4_Software_Architecture_Diagram.md` | Markdown Diagram/Spec | 20,009 | Tracked & Verified | C4 Level 1-3 + Sequence |
+| `5_FinTech_Research_Report.md` | Markdown Report | 30,717 | Tracked & Verified | Institutional Research |
+| `README.md` | Repository Index | ~11,500 | Tracked & Verified | Synchronized |
+| `.env.example` | Environment Template | 545 | Tracked & Verified | Production Ready |
+| `requirements.txt` | Dependencies | 46 | Tracked & Verified | Production Ready |
+| `AGENTS.md` | Capability Rules | 6,523 | Tracked & Verified | Multi-Agent Matrix |
 
 ---
 
